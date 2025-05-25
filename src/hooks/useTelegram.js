@@ -1,26 +1,35 @@
-const tg = window.Telegram?.WebApp;
+import { useEffect, useState } from 'react';
 
 export function useTelegram(){
     
-    const onClose = () => {
-        tg.close();
-    }
+    const [tg, setTg] = useState(null);
+    const [user, setUser] = useState(null);
 
-    const onToggleButton = () => {
-        if(tg.MainButton.isVisible) {
-            tg.MainButton.hide();
+    useEffect(() => {
+        if (window.Telegram?.WebApp) {
+            const webApp = window.Telegram.WebApp;
+            setTg(webApp);
+            setUser(webApp.initDataUnsafe?.user || null);
 
+            // Можно настроить интерфейс Web App, например:
+            webApp.ready();
+
+            // Пример: слушаем событие закрытия
+            // webApp.onEvent('mainButtonClicked', () => {
+            //   console.log('Main button clicked');
+            // });
         }
-        else {
-            tg.MainButton.show();
+    }, []);
+
+    const sendData = (data) => {
+        if (tg) {
+            tg.sendData(JSON.stringify(data));
         }
-    }
+    };
 
     return {
-        onClose,
-        onToggleButton,
         tg,
-        user: tg.initDataUnsafe?.user,
-    }
-
+        user,
+        sendData,
+    };
 }
