@@ -1,21 +1,26 @@
 import { useEffect } from 'react';
 import './App.css';
 import { useTelegram } from './hooks/useTelegram';
-import Header from './components/Header/Header';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Home from './components/Home/Home';
+import DisciplinePage from './components/DisciplinePage/DisciplinePage';
 
 function App() {
 
-  const {onToggleButton, tg} = useTelegram();
+  const {tg} = useTelegram();
 
   useEffect(() => {
     tg.ready();
   }, [tg])
 
   return (
-    <div className="App">
-      <Header/>
-      <button onClick={onToggleButton}>toggle</button>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        {/* Параметр disciplineId будет передаваться в URL */}
+        <Route path="/discipline/:disciplineId" element={<DisciplinePage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
