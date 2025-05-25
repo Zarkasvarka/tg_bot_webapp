@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import './App.css';
-import { useTelegram } from './hooks/useTelegram';
+//import { useTelegram } from './hooks/useTelegram';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/Home/Home';
 import DisciplinePage from './components/DisciplinePage/DisciplinePage';
 
 function App() {
 
-  const {tg} = useTelegram();
+  const tg = window.Telegram.WebApp;
 
   useEffect(() => {
     tg.ready();
