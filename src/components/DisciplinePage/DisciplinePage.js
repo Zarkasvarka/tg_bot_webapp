@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
 function Match({ match }) {
   return (
@@ -37,7 +38,7 @@ function Tournament({ tournament }) {
   );
 }
 
-function DisciplinePage({ disciplineId }) {
+function DisciplinePage() {
   const [discipline, setDiscipline] = useState(null);
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
