@@ -1,23 +1,13 @@
-import { useEffect } from 'react';
-import './App.css';
-//import { useTelegram } from './hooks/useTelegram';
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './components/Home/Home';
 import DisciplinePage from './components/DisciplinePage/DisciplinePage';
 
 function App() {
-
-  const tg = window.Telegram.WebApp;
-
-  useEffect(() => {
-    tg.ready();
-  }, [tg])
-
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* Параметр disciplineId будет передаваться в URL */}
         <Route path="/discipline/:disciplineId" element={<DisciplinePage />} />
       </Routes>
     </BrowserRouter>
