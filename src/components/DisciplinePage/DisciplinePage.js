@@ -48,11 +48,15 @@ function DisciplinePage() {
     fetch(`http://localhost:3001/api/discipline/${disciplineId}/tournaments`)
       .then(res => res.json())
       .then(data => {
+        console.log('Ответ API:', data); // добавьте лог для отладки
         setDiscipline(data.discipline);
         setTournaments(data.tournaments);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(err => {
+        console.error('Ошибка при загрузке данных:', err);
+        setLoading(false);
+      });
   }, [disciplineId]);
 
   if (loading) return <p>Загрузка...</p>;
