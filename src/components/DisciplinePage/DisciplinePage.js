@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 function Match({ match }) {
   return (
-    <div style={{ paddingLeft: '20px', borderBottom: '1px solid #ccc' }}>
+    <div>
       <h4>{match.team1} vs {match.team2}</h4>
       <p>Дата начала: {new Date(match.start_time).toLocaleString()}</p>
       <p>Коэффициенты:</p>
@@ -21,10 +21,7 @@ function Tournament({ tournament }) {
 
   return (
     <div style={{ marginBottom: '10px' }}>
-      <div
-        style={{ cursor: 'pointer', backgroundColor: '#eee', padding: '10px' }}
-        onClick={() => setIsOpen(!isOpen)}
-      >
+      <div onClick={() => setIsOpen(!isOpen)}>
         <h3>{tournament.name}</h3>
       </div>
       {isOpen && (
@@ -44,11 +41,15 @@ function DisciplinePage() {
   const [loading, setLoading] = useState(true);
   const { disciplineId } = useParams();
 
+  const [apiUrl, setApiUrl] = useState(null);
+
   useEffect(() => {
-    fetch(`http://localhost:3001/api/discipline/${disciplineId}/tournaments`)
+    if (!apiUrl) return; // ждем, пока apiUrl загрузится
+
+    fetch(`${apiUrl}/api/discipline/${disciplineId}/tournaments`)
       .then(res => res.json())
       .then(data => {
-        console.log('Ответ API:', data); // добавьте лог для отладки
+        console.log('Ответ API:', data);
         setDiscipline(data.discipline);
         setTournaments(data.tournaments);
         setLoading(false);
@@ -57,7 +58,7 @@ function DisciplinePage() {
         console.error('Ошибка при загрузке данных:', err);
         setLoading(false);
       });
-  }, [disciplineId]);
+  }, [apiUrl, disciplineId]);
 
   if (loading) return <p>Загрузка...</p>;
   if (!discipline) return <p>Дисциплина не найдена</p>;
