@@ -1,0 +1,39 @@
+.tournament {
+  margin-bottom: 10px;
+}
+
+.tournament-header {
+  cursor: pointer;
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 4px;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+.tournament-header:hover {
+  background-color: #ddd;
+}
+
+.matches-list {
+  margin-left: 20px;
+  border-left: 2px solid #ccc;
+  padding-left: 10px;
+}
+
+.match {
+  padding: 10px 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.match h4 {
+  margin: 0 0 5px 0;
+}
+
+.match p {
+  margin: 2px 0;
+}
+
+.match ul {
+  margin: 5px 0 0 20px;
+}
