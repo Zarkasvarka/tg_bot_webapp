@@ -41,6 +41,7 @@ function DisciplinePage({ disciplineId }) {
   const [discipline, setDiscipline] = useState(null);
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { disciplineId } = useParams();
 
   useEffect(() => {
     fetch(`http://localhost:3001/api/discipline/${disciplineId}/tournaments`)
