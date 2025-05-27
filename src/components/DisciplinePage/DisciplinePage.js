@@ -43,22 +43,34 @@ function DisciplinePage() {
 
   const [apiUrl, setApiUrl] = useState(null);
 
-  useEffect(() => {
-    if (!apiUrl) return; // ждем, пока apiUrl загрузится
+   // Первый useEffect — загрузка apiUrl из backend
+    useEffect(() => {
+      fetch('/api/config')
+        .then(res => res.json())
+        .then(data => setApiUrl(data.apiUrl))
+        .catch(err => {
+          console.error('Ошибка при загрузке конфигурации:', err);
+        });
+    }, []);
 
-    fetch(`${apiUrl}/api/discipline/${disciplineId}/tournaments`)
-      .then(res => res.json())
-      .then(data => {
-        console.log('Ответ API:', data);
-        setDiscipline(data.discipline);
-        setTournaments(data.tournaments);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Ошибка при загрузке данных:', err);
-        setLoading(false);
-      });
-  }, [apiUrl, disciplineId]);
+    // Второй useEffect — загрузка данных дисциплины и турниров, когда apiUrl и disciplineId доступны
+    useEffect(() => {
+      if (!apiUrl) return; // ждем, пока apiUrl загрузится
+
+      setLoading(true);
+      fetch(`${apiUrl}/api/discipline/${disciplineId}/tournaments`)
+        .then(res => res.json())
+        .then(data => {
+          console.log('Ответ API:', data);
+          setDiscipline(data.discipline);
+          setTournaments(data.tournaments);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Ошибка при загрузке данных:', err);
+          setLoading(false);
+        });
+    }, [apiUrl, disciplineId]);
 
   if (loading) return <p>Загрузка...</p>;
   if (!discipline) return <p>Дисциплина не найдена</p>;
