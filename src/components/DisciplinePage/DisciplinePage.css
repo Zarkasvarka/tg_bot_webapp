@@ -1,39 +1,342 @@
+.discipline-page {
+  max-width: 600px;
+  margin: 20px auto;
+  font-family: Arial, sans-serif;
+  padding: 0 15px;
+}
+
+.discipline-title {
+  width: 100%;
+  border: 2px solid #ff0000; /* видимая граница, цвет можно изменить */
+  padding: 15px 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #000000;
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+  background-color: #f9faff; /* опционально, чтобы выделить блок */
+}
+
+.discipline-title.dota2 {
+  background-color: #fc3b00;
+  color: rgb(0, 0, 0);
+  border: 2px solid #ec3300;
+}
+
+.discipline-title.cs2 {
+  background-color: #ff6600;
+  color: white;
+  border: 2px solid #cc5200;
+}
+
+.discipline-title.lol {
+  background-color: #28a745;
+  color: white;
+  border: 2px solid #1e7e34;
+}
+
+/* Турниры */
 .tournament {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .tournament-header {
   cursor: pointer;
-  background-color: #eee;
+  background-color: #f0f0f0;
   padding: 10px;
   border-radius: 4px;
   user-select: none;
   transition: background-color 0.3s ease;
+  font-weight: 700;
+  font-size: 18px;
 }
 
 .tournament-header:hover {
-  background-color: #ddd;
+  background-color: #e0e0e0;
 }
 
-.matches-list {
-  margin-left: 20px;
-  border-left: 2px solid #ccc;
-  padding-left: 10px;
-}
-
+/* Матчи */
 .match {
-  padding: 10px 0;
-  border-bottom: 1px solid #ccc;
+  position: relative; /* для позиционирования точки */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ccc;
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.match h4 {
-  margin: 0 0 5px 0;
+/* Точка статуса */
+.match-status-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: gray; /* цвет по умолчанию */
+  &.finished {
+    background-color: gray;
+  }
+  &.active {
+    background-color: rgb(255, 0, 0);
+  }
+  &.upcoming {
+    background-color: rgb(63, 63, 254);
+  }
 }
 
-.match p {
-  margin: 2px 0;
+.match-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: #333;
 }
 
-.match ul {
-  margin: 5px 0 0 20px;
+.bet-open-button {
+  padding: 6px 12px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.bet-open-button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.bet-open-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+/* Модальное окно ставок */
+.bet-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.bet-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.bet-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.bet-modal-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+}
+
+.bet-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.bet-modal-close:hover {
+  color: #444;
+}
+
+/* Тело модального окна */
+.bet-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Ряд с командами и временем */
+.teams-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Блок команды */
+.team-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 120px;
+}
+
+.team-name {
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Логотипы команд */
+.team-logo {
+  max-width: 80px;      
+  max-height: 80px;     
+  width: auto;          
+  height: auto;         
+  object-fit: contain;  
+  display: block;       
+  margin: 0 auto 8px;   
+  border-radius: 8px;   
+  box-shadow: 0 0 5px rgba(0,0,0,0.1); 
+}
+
+/* Коэффициенты и кнопка выбора */
+.team-coef {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-coef span {
+  font-weight: 700;
+  font-size: 18px;
+  color: #007bff;
+}
+
+.team-coef button {
+  padding: 6px 12px;
+  border: 1px solid #007bff;
+  background-color: white;
+  color: #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.team-coef button.selected,
+.team-coef button:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.team-block button.selected {
+  background-color: #007bff;
+  color: #fff;
+  border: 1px solid #007bff;
+}
+
+/* Время матча посередине */
+.match-time {
+  flex: 0 0 80px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #555;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.date-small {
+  font-size: 0.8em;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.time-large {
+  font-size: 1em;
+  font-weight: 600;
+  color: #222;
+}
+
+/* Нижняя часть с вводом ставки */
+.bet-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.bet-input-row input[type="number"] {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.bet-input-row input[type="number"]:focus {
+  border-color: #007bff;
+}
+
+.bet-input-row button {
+  padding: 8px 16px;
+  background-color: #28a745;
+  border: none;
+  color: white;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.bet-input-row button:disabled {
+  background-color: #94d3a2;
+  cursor: not-allowed;
+}
+
+.bet-input-row button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+  .team-logo {
+    max-width: 50px;
+    max-height: 50px;
+  }
+  .team-name {
+    font-size: 14px;
+  }
+  .bet-modal {
+    width: 95%;
+    padding: 15px;
+  }
+}
+
+/* Фокус для доступности */
+.team-coef button:focus,
+.bet-open-button:focus,
+.bet-input-row button:focus {
+  outline: 2px solid #0056b3;
+  outline-offset: 2px;
 }

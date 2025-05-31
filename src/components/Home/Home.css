@@ -1,30 +1,23 @@
 .home-container {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 400px;
+  margin: 100px auto;
   text-align: center;
+  font-family: Arial, sans-serif;
 }
 
-.disciplines-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 20px;
-}
-
-.discipline-item {
-  margin: 15px 0;
-}
-
-.discipline-link {
+.telegram-button {
   display: inline-block;
-  padding: 10px 20px;
-  background-color: var(--tg-theme-button-color);
-  color: var(--tg-theme-button-text-color);
+  margin-top: 20px;
+  padding: 12px 24px;
+  background-color: #0088cc;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
   border-radius: 8px;
   text-decoration: none;
-  transition: opacity 0.2s;
+  transition: background-color 0.3s ease;
 }
 
-.discipline-link:hover {
-  opacity: 0.9;
+.telegram-button:hover {
+  background-color: #006699;
 }
