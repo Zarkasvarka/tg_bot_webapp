@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import './DisciplinePage.css';
 
@@ -257,10 +256,9 @@ function Tournament({ tournament, balance, onPlaceBet }) {
 }
 
 export default function DisciplinePage({ user, updateBalance }) {
-  const { disciplineId } = useParams();
   const discipline = MOCK_DATA.discipline;
 
-  const [bets, setBets] = useLocalStorage('userBets', []);
+  const [setBets] = useLocalStorage('userBets', []);
 
   const balance = user ? user.balance : 0;
 

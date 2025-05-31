@@ -101,7 +101,6 @@ export default function History() {
   const [betsFromStorage] = useLocalStorage('userBets', []);
   const [transactionsFromStorage] = useLocalStorage('userTransactions', []);
   const navigate = useNavigate();
-  const disciplineId = localStorage.getItem('lastDisciplineId');
 
   // Объединяем ставки: если localStorage пуст — используем MOCK_BETS, иначе — реальные + MOCK_BETS (без дубликатов по дате)
   const bets = betsFromStorage.length === 0
@@ -164,7 +163,7 @@ export default function History() {
 
   return (
     <div className="history-page">
-      <button className="back-btn" onClick={() => navigate(`/discipline/${disciplineId}`)}></button>
+      <button className="back-btn" onClick={() => navigate(-1)}></button>
       <h1>История</h1>
 
       <ul className="history-list">
