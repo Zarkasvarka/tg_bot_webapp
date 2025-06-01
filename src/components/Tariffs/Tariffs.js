@@ -13,50 +13,94 @@ const TARIFFS = [
   { tariffid: 8, name: 'Грандмастер', price: '7500₽', tokens_amount: 12000, is_active: true },
   { tariffid: 9, name: 'Легенда', price: '10000₽', tokens_amount: 17000, is_active: true },
   { tariffid: 10, name: 'Элитный', price: '15000₽', tokens_amount: 25000, is_active: true },
+  { tariffid: 11, name: 'GODLIKE', price: '20000₽', tokens_amount: 30000, is_active: true },
 ];
 
 export default function Tariffs() {
   const [position, setPosition] = useState(0);
+  const [cardWidth, setCardWidth] = useState(300);
   const containerRef = useRef(null);
   const navigate = useNavigate();
-  const cardWidth = 300;
   const gap = 15;
-  const [maxTranslate, setMaxTranslate] = useState(0);
 
-  // Рассчёт максимального смещения
-  const calculateMaxTranslate = () => {
-    if (!containerRef.current) return 0;
-    const containerWidth = containerRef.current.offsetWidth;
-    const contentWidth = TARIFFS.length * (cardWidth + gap) - gap;
-    return Math.max(contentWidth - containerWidth, 0);
+  // Функция для получения ширины карточки
+  const getCardWidth = () => {
+    return window.innerWidth <= 480 ? Math.max(100, window.innerWidth - 30) : 300;
   };
 
-  // Обновление размеров при изменении экрана
+  // Рассчёт максимального смещения и шага
+  const calculateDimensions = (cardWidth, gap) => {
+    if (!containerRef.current) return { maxTranslate: 0, step: 0 };
+
+    const containerWidth = containerRef.current.offsetWidth;
+    const contentWidth = TARIFFS.length * (cardWidth + gap) - gap;
+    let maxTranslate = Math.max(contentWidth - containerWidth, 0);
+
+    // Корректировка для точного позиционирования последней карточки
+    if (window.innerWidth > 480 && maxTranslate > 0) {
+      const totalCardsWidth = TARIFFS.length * cardWidth + (TARIFFS.length - 1) * gap;
+      const visibleWidth = containerWidth;
+      const lastCardPosition = totalCardsWidth - visibleWidth;
+      maxTranslate = Math.max(lastCardPosition, 0);
+    }
+
+    // Расчёт видимых карточек
+    const visibleCardsFloat = (containerWidth + gap) / (cardWidth + gap);
+    const visibleCards = Math.max(1, Math.floor(visibleCardsFloat));
+
+    // Шаг прокрутки (кратен ширине карточек)
+    const step = visibleCards * (cardWidth + gap);
+
+    // Корректировка шага для последней страницы (чтобы не было пустого пространства)
+    const remainder = maxTranslate % step;
+    if (remainder > 0 && window.innerWidth > 480) {
+      maxTranslate += step - remainder;
+    }
+
+    return { maxTranslate, step, containerWidth };
+  };
+
+  // Обновление размеров и позиции при ресайзе
   useEffect(() => {
     const handleResize = () => {
-      const newMax = calculateMaxTranslate();
-      setMaxTranslate(newMax);
-      setPosition(prev => Math.min(prev, newMax));
-    };
-    
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+      const newCardWidth = getCardWidth();
+      setCardWidth(newCardWidth);
+      const { maxTranslate } = calculateDimensions(newCardWidth, gap);
 
-  // Обработчики скролла
+      setPosition(prev => {
+        if (window.innerWidth > 480) {
+          return Math.min(prev, maxTranslate);
+        }
+        return prev;
+      });
+    };
+
+    handleResize();
+    const ro = new ResizeObserver(handleResize);
+    if (containerRef.current) ro.observe(containerRef.current);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [gap]);
+
+  // Обработчик скролла
   const handleScroll = (direction) => {
-    const step = cardWidth + gap;
-    let newPosition = direction === 'right' 
-      ? position + step 
-      : position - step;
-    
-    newPosition = Math.max(0, Math.min(newPosition, maxTranslate));
+    const { maxTranslate, step } = calculateDimensions(cardWidth, gap);
+    const newPosition = direction === 'right'
+      ? Math.min(position + step, maxTranslate)
+      : Math.max(position - step, 0);
     setPosition(newPosition);
   };
 
   // Прогресс-бар
+  const { maxTranslate } = calculateDimensions(cardWidth, gap);
   const progress = maxTranslate > 0 ? (position / maxTranslate) * 100 : 0;
+
+  // Скрыть стрелки на мобильных устройствах
+  const showArrows = window.innerWidth > 480;
 
   return (
     <div className="tariffs-page">
@@ -64,27 +108,29 @@ export default function Tariffs() {
       </button>
       <h1 className="tariffs-title">Пополнить баланс</h1>
       <div className="tariffs-carousel">
-        <button
-          className={`carousel-arrow left ${position <= 0 ? 'disabled' : ''}`}
-          onClick={() => handleScroll('left')}
-          disabled={position <= 0}
-        >
-          ‹
-        </button>
-
+        {showArrows && (
+          <button
+            className={`carousel-arrow left ${position <= 0 ? 'disabled' : ''}`}
+            onClick={() => handleScroll('left')}
+            disabled={position <= 0}
+          >
+            ‹
+          </button>
+        )}
         <div className="tariffs-cards-container" ref={containerRef}>
           <div
             className="tariffs-cards"
             style={{
-              transform: `translateX(-${position}px)`,
-              gap: `${gap}px`
+              transform: window.innerWidth > 480 ? `translateX(-${position}px)` : 'none',
+              gap: `${gap}px`,
+              transition: 'transform 0.3s ease',
             }}
           >
             {TARIFFS.map(tariff => (
               <div
                 className="tariff-card"
                 key={tariff.tariffid}
-                style={{ width: `${cardWidth}px` }}
+                style={{ width: window.innerWidth <= 480 ? 'calc(100vw - 30px)' : `${cardWidth}px` }}
               >
                 <div className="tariff-name">{tariff.name}</div>
                 <div className="tariff-price">{tariff.price}</div>
@@ -99,24 +145,27 @@ export default function Tariffs() {
             ))}
           </div>
         </div>
-        <button
-          className={`carousel-arrow right ${position >= maxTranslate ? 'disabled' : ''}`}
-          onClick={() => handleScroll('right')}
-          disabled={position >= maxTranslate}
-        >
-          ›
-        </button>
+        {showArrows && (
+          <button
+            className={`carousel-arrow right ${position >= maxTranslate ? 'disabled' : ''}`}
+            onClick={() => handleScroll('right')}
+            disabled={position >= maxTranslate}
+          >
+            ›
+          </button>
+        )}
       </div>
-
-      <div className="tariffs-scrollbar">
-        <div
-          className="tariffs-scrollbar-track"
-          style={{
-            width: `${progress}%`,
-            transition: 'width 0.3s ease-in-out'
-          }}
-        />
-      </div>
+      {showArrows && (
+        <div className="tariffs-scrollbar">
+          <div
+            className="tariffs-scrollbar-track"
+            style={{
+              width: `${progress}%`,
+              transition: 'width 0.3s ease-in-out'
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

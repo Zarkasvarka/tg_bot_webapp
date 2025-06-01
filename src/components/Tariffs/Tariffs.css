@@ -64,7 +64,7 @@
 .tariffs-cards {
   display: flex;
   min-width: 100%;
-  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 0.3s ease;
 }
 
 .tariff-card {
@@ -133,7 +133,8 @@
   background: #007bff;
   border-radius: 3px;
   position: absolute;
-  transition: left 0.3s ease-in-out;
+  left: 0;
+  transition: width 0.3s ease-in-out;
 }
 
 .carousel-arrow {
@@ -186,21 +187,36 @@
 }
 
 @media (max-width: 480px) {
-  .tariff-card {
-    width: calc(100vw - 60px) !important;
-    min-width: calc(100vw - 60px) !important;
-  }
   .tariffs-cards-container {
-    margin: 0 10px;
+    margin: 0 5px !important;
+    overflow: visible;
   }
-  .carousel-arrow {
-    width: 30px;
-    height: 30px;
+  .tariff-card {
+    width: calc(100vw - 30px) !important;
+    min-width: calc(100vw - 30px) !important;
+    margin: 0 5px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
   }
-  .carousel-arrow.left {
-    left: 5px;
+  .tariffs-cards {
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    transform: none !important;
   }
-  .carousel-arrow.right {
-    right: 5px;
+  .carousel-arrow, .tariffs-scrollbar {
+    display: none !important;
+  }
+}
+
+@media (min-width: 481px) {
+  .tariffs-cards-container {
+    padding-right: calc((100% - 300px) / 2) !important;
+  }
+  
+  .tariffs-cards::after {
+    content: '';
+    flex: 0 0 calc((100% - 300px) / 2 - 15px);
   }
 }
