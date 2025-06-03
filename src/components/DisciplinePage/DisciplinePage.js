@@ -6,9 +6,11 @@ import { useParams } from "react-router-dom";
 const API_URL = "https://tg-bot-741h.onrender.com/api";
 
 const disciplineClassMap = {
-  'Dota 2': 'dota2',
-  'CS 2': 'cs2',
+  'Counter-Strike 2': 'dota2',
+  'Dota 2': 'cs2',
   'League of Legends': 'lol',
+  'Valorant': 'valorant',
+  'World of Tanks: Blitz': 'wotb',
   // и так далее
 };
 
