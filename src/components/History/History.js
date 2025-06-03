@@ -1,5 +1,6 @@
-import React from 'react';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '../../hooks/useUser';
+//import { useLocalStorage } from '../../hooks/useLocalStorage';
 import './History.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,7 +43,6 @@ export default function History() {
 
       } catch (e) {
         console.error('Ошибка загрузки данных:', e);
-        setError(e.message || 'Произошла ошибка при загрузке истории');
       } finally {
         setLoading(false);
       }

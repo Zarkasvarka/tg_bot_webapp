@@ -133,7 +133,7 @@ function Match({ match, tournamentName, balance, onPlaceBet }) {
   );
 }
 
-function Tournament({ tournament, balance, onPlaceBet }) {
+function Tournament({ tournament, matches, balance, onPlaceBet}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const sortedMatches = [...matches].sort(
