@@ -1,9 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 # Frontend
 /node_modules
-/front/build
-/front/dist
-/front/.env
+/build
+/dist
+/.env
 
 # Logs
 npm-debug.log*
