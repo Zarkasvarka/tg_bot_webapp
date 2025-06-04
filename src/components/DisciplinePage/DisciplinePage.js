@@ -3,7 +3,7 @@ import './DisciplinePage.css';
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-const API_URL = "https://tg-bot-741h.onrender.com/api";
+const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 const disciplineClassMap = {
   'Counter-Strike 2': 'dota2',

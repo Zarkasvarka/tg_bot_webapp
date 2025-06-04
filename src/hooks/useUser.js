@@ -9,7 +9,7 @@ export function useUser() {
         // Получаем данные из Telegram WebApp
         const initData = window.Telegram?.WebApp?.initData || '';
         
-        const response = await fetch('https://tg-bot-741h.onrender.com/api/user', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user`, {
           headers: {
             'Telegram-InitData': initData
           }

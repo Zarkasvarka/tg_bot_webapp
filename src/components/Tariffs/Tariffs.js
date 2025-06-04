@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Tariffs.css';
 import { useNavigate } from 'react-router-dom';
-const API_URL = "https://tg-bot-741h.onrender.com/api/tariffs";
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tariffs`;
 
 export default function Tariffs() {
   const [tariffs, setTariffs] = useState([]);
