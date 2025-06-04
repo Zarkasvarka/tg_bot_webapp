@@ -208,37 +208,42 @@ export default function DisciplinePage({ user, updateBalance }) {
 
   // Ставка
   const handlePlaceBet = async (matchId, team, amount, coefficient) => {
-    if (amount > balance) {
-      alert('Недостаточно средств');
+  try {
+    const res = await fetch(`${API_URL}/predictions`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Telegram-InitData': window.Telegram.WebApp.initData 
+      },
+      body: JSON.stringify({
+        matchid: matchId,
+        bet_amount: amount,
+        selected_team: team,
+        coefficient_snapshot: coefficient
+      })
+    });
+    
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || 'Ошибка при ставке');
       return;
     }
 
-    // Отправляем ставку на backend
-    try {
-      const res = await fetch(`${API_URL}/predictions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          telegramid: user.telegramid,
-          matchid: matchId,
-          bet_amount: amount,
-          selected_team: team,
-          coefficient_snapshot: coefficient
-        })
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        alert(data.error || 'Ошибка при ставке');
-        return;
-      }
-      // Обновляем баланс на фронте
-      updateBalance(balance - amount);
-      setBets(prev => [...prev, { matchId, team, amount, date: new Date().toISOString() }]);
-      alert('Ставка принята!');
-    } catch (err) {
-      alert('Ошибка при отправке ставки');
-    }
-  };
+    // Обновление UI
+    updateBalance(user.balance - amount);
+    setBets(prev => [...prev, { 
+      matchId, 
+      team, 
+      amount, 
+      date: new Date().toISOString() 
+    }]);
+    alert('Ставка принята!');
+
+  } catch (error) {
+    alert('Ошибка сети');
+  }
+};
+
 
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error}</div>;
