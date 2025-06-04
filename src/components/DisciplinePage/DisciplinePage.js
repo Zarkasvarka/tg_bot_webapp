@@ -173,7 +173,6 @@ export default function DisciplinePage({ user, updateBalance }) {
   // Получаем дисциплину
   useEffect(() => {
     console.log("discipline id from URL:", disciplineId);
-    console.log(window.Telegram?.WebApp?.initDataUnsafe?.user);
     setLoading(true);
     setError(null);
 
