@@ -266,7 +266,6 @@ export default function DisciplinePage({ user, updateBalance }) {
       <h1 className={`discipline-title ${disciplineClass}`}>
         {discipline.name}
       </h1>
-      <p>{discipline.description}</p>
 
       {sortedTournaments.length === 0 ? (
         <p>Турниры не найдены</p>
