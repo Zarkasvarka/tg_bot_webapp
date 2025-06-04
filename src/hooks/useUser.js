@@ -13,10 +13,12 @@ export function useUser() {
     })
       .then(res => res.json())
       .then(data => setUser({
-        avatarUrl: `https://t.me/i/userpic/320/${data.username}.jpg`,
-        nickname: data.username,
+        avatarUrl: data.username 
+          ? `https://t.me/i/userpic/320/${data.username}.jpg`
+          : 'https://t.me/i/userpic/320/Amaizek.jpg', // Заглушка
+        nickname: data.username || 'Гость',
         balance: data.token_balance,
-        telegramid: data.telegramid,
+        telegramid: data.telegramId,
       }))
       .catch(() => setUser(null));
   }, []);
