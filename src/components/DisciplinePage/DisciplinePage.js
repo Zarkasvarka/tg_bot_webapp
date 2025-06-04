@@ -159,7 +159,7 @@ function Tournament({ tournament, matches, balance, onPlaceBet}) {
 }
 
 export default function DisciplinePage({ user, updateBalance }) {
-  const { id } = useParams(); // disciplineId из URL
+  const { disciplineId } = useParams(); // disciplineId из URL
   const [discipline, setDiscipline] = useState(null);
   const [tournaments, setTournaments] = useState([]);
   const [matchesByTournament, setMatchesByTournament] = useState({});
@@ -172,20 +172,20 @@ export default function DisciplinePage({ user, updateBalance }) {
 
   // Получаем дисциплину
   useEffect(() => {
-    console.log("discipline id from URL:", id);
+    console.log("discipline id from URL:", disciplineId);
     setLoading(true);
     setError(null);
 
     async function fetchData() {
       try {
         // 1. Получаем дисциплину
-        const discRes = await fetch(`${API_URL}/disciplines/${id}`);
+        const discRes = await fetch(`${API_URL}/disciplines/${disciplineId}`);
         if (!discRes.ok) throw new Error('Ошибка загрузки дисциплины');
         const disciplineData = await discRes.json();
         setDiscipline(disciplineData);
 
         // 2. Получаем турниры этой дисциплины
-        const tournRes = await fetch(`${API_URL}/tournaments?disciplineid=${id}`);
+        const tournRes = await fetch(`${API_URL}/tournaments?disciplineid=${disciplineId}`);
         const tournamentsData = await tournRes.json();
         setTournaments(tournamentsData);
 
@@ -205,7 +205,7 @@ export default function DisciplinePage({ user, updateBalance }) {
     }
 
     fetchData();
-  }, [id]);
+  }, [disciplineId]);
 
   // Ставка
   const handlePlaceBet = async (matchId, team, amount, coefficient) => {
