@@ -172,6 +172,7 @@ export default function DisciplinePage({ user, updateBalance }) {
 
   // Получаем дисциплину
   useEffect(() => {
+    console.log("discipline id from URL:", id);
     setLoading(true);
     setError(null);
 
