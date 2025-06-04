@@ -4,39 +4,21 @@ export function useUser() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        // Получаем данные из Telegram WebApp
-        const initData = window.Telegram?.WebApp?.initData || '';
-        
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/user`, {
-          headers: {
-            'Telegram-InitData': initData
-          }
-        });
-        
-        if (!response.ok) throw new Error('Ошибка авторизации');
-        
-        const userData = await response.json();
-        
-        // Форматируем данные для фронта
-        const formattedUser = {
-          avatarUrl: userData.avatar_url || 'https://t.me/i/userpic/320/zarkasvarka.jpg',
-          nickname: userData.username || `User${userData.telegramid}`,
-          balance: userData.token_balance,
-          telegramid: userData.telegramid
-        };
-        
-        setUser(formattedUser);
-      } catch (error) {
-        console.error('Ошибка загрузки пользователя:', error);
-        setUser(null);
-      }
-    };
+    if (!window.Telegram?.WebApp?.initData) return;
 
-    if (window.Telegram?.WebApp) {
-      fetchUser();
-    }
+    fetch(`${process.env.REACT_APP_API_URL}/api/user`, {
+      headers: {
+        'Telegram-InitData': window.Telegram.WebApp.initData
+      }
+    })
+      .then(res => res.json())
+      .then(data => setUser({
+        avatarUrl: `https://t.me/i/userpic/320/${data.username}.jpg`,
+        nickname: data.username,
+        balance: data.token_balance,
+        telegramid: data.telegramid,
+      }))
+      .catch(() => setUser(null));
   }, []);
 
   return [user, setUser];
