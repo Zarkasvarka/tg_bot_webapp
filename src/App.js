@@ -12,6 +12,11 @@ function App() {
   const location = useLocation();
   const showHeader = location.pathname !== '/';
 
+  useEffect(() => {
+    console.log('initDataUnsafe:', window.Telegram?.WebApp?.initDataUnsafe);
+    console.log('initDataUnsafe.user:', window.Telegram?.WebApp?.initDataUnsafe?.user);
+  }, []);
+
   // Функция обновления баланса
   const updateBalance = (newBalance) => {
     setUser(prevUser => prevUser ? { ...prevUser, balance: newBalance } : prevUser);

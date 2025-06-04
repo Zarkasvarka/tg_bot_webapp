@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './UserCard.css';
 
 export default function UserCard({ user }) {
-  console.log(window.Telegram?.WebApp?.initDataUnsafe?.user);
   const [showHistoryBtn, setShowHistoryBtn] = useState(false);
   const navigate = useNavigate();
 
