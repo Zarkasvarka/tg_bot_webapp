@@ -19,6 +19,15 @@ function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
   const [betAmount, setBetAmount] = useState('');
 
   const handlePlaceBet = () => {
+    // Получаем актуальное название команды из состояния
+    const selectedTeamName = selectedTeam; 
+    
+    // Проверяем существование коэффициента
+    if (!match.coefficients[selectedTeamName]) {
+      alert('Ошибка коэффициента');
+      return;
+    }
+    
     const amount = Number(betAmount);
     if (!selectedTeam || !amount) return;
 

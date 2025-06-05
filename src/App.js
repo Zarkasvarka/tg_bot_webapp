@@ -30,11 +30,8 @@ function App() {
         })
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        alert(data.error || 'Ошибка при ставке');
-        return;
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Unknown error');
 
       // Обновляем баланс
       const newBalance = user.balance - amount;
@@ -42,7 +39,7 @@ function App() {
       alert('Ставка принята!');
 
     } catch (error) {
-      alert('Ошибка сети');
+      alert(error.message);
     }
   };
 
