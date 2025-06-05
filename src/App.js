@@ -30,8 +30,8 @@ function App() {
         })
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Unknown error');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unknown error');
 
       // Обновляем баланс
       const newBalance = user.balance - amount;
