@@ -16,42 +16,52 @@ export default function History() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !window.Telegram?.WebApp?.initData) {
+      navigate('/');
+      return;
+    }
 
     async function fetchData() {
       setLoading(true);
       try {
+        // Заголовок для авторизации
+        const headers = {
+          'Telegram-InitData': window.Telegram.WebApp.initData
+        };
+
         // Получаем историю ставок
-        const predRes = await fetch(`${API_URL}/predictions?telegramid=${user.telegramid}`);
-        const predData = await predRes.json();
-        setPredictions(predData);
+        const predRes = await fetch(`${API_URL}/predictions`, { headers });
+        const predData = await predRes.ok ? await predRes.json() : [];
+        setPredictions(Array.isArray(predData) ? predData : []);
 
         // Получаем историю транзакций
-        const txRes = await fetch(`${API_URL}/transactions?telegramid=${user.telegramid}`);
-        const txData = await txRes.json();
-        setTransactions(txData);
+        const txRes = await fetch(`${API_URL}/transactions`, { headers });
+        const txData = await txRes.ok ? await txRes.json() : [];
+        setTransactions(Array.isArray(txData) ? txData : []);
 
-        // Получаем все матчи (чтобы сопоставлять id)
+        // Получаем все матчи
         const matchesRes = await fetch(`${API_URL}/matches`);
         const matchesData = await matchesRes.json();
-        setMatches(matchesData);
+        setMatches(Array.isArray(matchesData) ? matchesData : []);
 
-        // Получаем все турниры (чтобы сопоставлять id)
+        // Получаем все турниры
         const tournamentsRes = await fetch(`${API_URL}/tournaments`);
         const tournamentsData = await tournamentsRes.json();
-        setTournaments(tournamentsData);
+        setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
 
       } catch (e) {
         console.error('Ошибка загрузки данных:', e);
+        setPredictions([]);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }
     }
 
     fetchData();
-  }, [user]);
+  }, [user, navigate]);
 
-    // Вспомогательные функции для поиска матча и турнира по id
+    // Вспомогательные функции
   function findMatchAndTournament(matchid) {
     const match = matches.find(m => m.matchid === matchid);
     if (!match) return {};
@@ -59,11 +69,16 @@ export default function History() {
     return { match, tournament };
   }
 
+  // Формируем историю с защитой от undefined
+  const safePredictions = Array.isArray(predictions) ? predictions : [];
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+
   // Формируем единый массив истории
   const combinedHistory = [
-    ...predictions.flatMap(bet => {
-      const { match, tournament } = findMatchAndTournament(bet.matchid);
-      if (!match || !tournament) return [];
+    ...safePredictions.flatMap(bet => {
+      try {
+        const { match, tournament } = findMatchAndTournament(bet.matchid);
+        if (!match || !tournament) return [];
 
       const betEntry = {
         id: `bet-${bet.predictionid}`,
@@ -95,8 +110,11 @@ export default function History() {
       }
 
       return [betEntry];
+    } catch (e) {
+        return [];
+      }
     }),
-    ...transactions.map(tx => ({
+    ...safeTransactions.map(tx => ({
       id: `tx-${tx.transactionid}`,
       type: 'transaction',
       date: tx.date,
