@@ -20,22 +20,11 @@ function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
 
   const handlePlaceBet = () => {
     const amount = Number(betAmount);
-    if (!selectedTeam) {
-      alert('Выберите команду для ставки');
-      return;
-    }
-    if (!amount || amount <= 0) {
-      alert('Введите корректную сумму ставки');
-      return;
-    }
-    if (amount > balance) {
-      alert('Сумма ставки не может превышать ваш баланс');
-      return;
-    }
-    if (window.confirm(`Подтвердите ставку: ${amount} токенов на ${selectedTeam}`)) {
-      onPlaceBet(match.matchid, selectedTeam, amount);
-      onClose();
-    }
+    if (!selectedTeam || !amount) return;
+
+    // Вызываем переданный обработчик с коэффициентом
+    onPlaceBet(match.matchid, selectedTeam, amount);
+    onClose();
   };
 
   return (
@@ -128,7 +117,10 @@ function Match({ match, tournamentName, balance, onPlaceBet }) {
           match={match}
           balance={balance}
           onClose={() => setBetOpen(false)}
-          onPlaceBet={onPlaceBet}
+          onPlaceBet={(matchId, team, amount) => {
+            const coefficient = match.coefficients[team];
+            onPlaceBet(matchId, team, amount, coefficient);
+          }}
         />
       )}
     </div>
@@ -158,7 +150,7 @@ function Tournament({ tournament, matches, balance, onPlaceBet}) {
   );
 }
 
-export default function DisciplinePage({ user, updateBalance }) {
+export default function DisciplinePage({ user, updateBalance, onPlaceBet  }) {
   const { disciplineId } = useParams(); // disciplineId из URL
   const [discipline, setDiscipline] = useState(null);
   const [tournaments, setTournaments] = useState([]);
@@ -206,41 +198,6 @@ export default function DisciplinePage({ user, updateBalance }) {
     fetchData();
   }, [disciplineId]);
 
-  // Ставка
-  const handlePlaceBet = async (matchId, team, amount, coefficient) => {
-  try {
-    const res = await fetch(`${API_URL}/predictions`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Telegram-InitData': window.Telegram.WebApp.initData 
-      },
-      body: JSON.stringify({
-        matchid: matchId,
-        bet_amount: amount,
-        selected_team: team,
-        coefficient_snapshot: coefficient
-      })
-    });
-    
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Ошибка при ставке');
-
-    // Обновление UI
-    updateBalance(user.balance - amount);
-    setBets(prev => [...prev, { 
-      matchId, 
-      team, 
-      amount, 
-      date: new Date().toISOString() 
-    }]);
-    alert('Ставка принята!');
-
-  } catch (error) {
-    alert(error.message);
-  }
-};
-
 
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error}</div>;
@@ -278,7 +235,7 @@ export default function DisciplinePage({ user, updateBalance }) {
             tournament={tournament}
             matches={matchesByTournament[tournament.tournamentid] || []}
             balance={balance}
-            onPlaceBet={handlePlaceBet}
+            onPlaceBet={onPlaceBet}
           />
         ))
       )}
