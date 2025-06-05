@@ -1,4 +1,4 @@
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+//import { useLocalStorage } from '../../hooks/useLocalStorage';
 import './DisciplinePage.css';
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -150,7 +150,7 @@ function Tournament({ tournament, matches, balance, onPlaceBet}) {
   );
 }
 
-export default function DisciplinePage({ user, updateBalance, onPlaceBet  }) {
+export default function DisciplinePage({ user, onPlaceBet  }) {
   const { disciplineId } = useParams(); // disciplineId из URL
   const [discipline, setDiscipline] = useState(null);
   const [tournaments, setTournaments] = useState([]);
@@ -159,7 +159,6 @@ export default function DisciplinePage({ user, updateBalance, onPlaceBet  }) {
   const [error, setError] = useState(null);
 
   // Для ставок
-  const [, setBets] = useLocalStorage('userBets', []);
   const balance = user ? user.balance : 0;
 
   // Получаем дисциплину
