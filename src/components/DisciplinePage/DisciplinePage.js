@@ -23,7 +23,8 @@ function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
     if (!selectedTeam || !amount) return;
 
     // Вызываем переданный обработчик с коэффициентом
-    onPlaceBet(match.matchid, selectedTeam, amount);
+    const coefficient = match.coefficients[selectedTeam]; // Получаем коэффициент для выбранной команды
+    onPlaceBet(match.matchid, selectedTeam, amount, coefficient); 
     onClose();
   };
 
