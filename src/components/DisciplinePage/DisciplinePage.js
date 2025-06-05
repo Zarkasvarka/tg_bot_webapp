@@ -223,11 +223,8 @@ export default function DisciplinePage({ user, updateBalance }) {
       })
     });
     
-    if (!res.ok) {
-      const data = await res.json();
-      alert(data.error || 'Ошибка при ставке');
-      return;
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Ошибка при ставке');
 
     // Обновление UI
     updateBalance(user.balance - amount);
@@ -240,7 +237,7 @@ export default function DisciplinePage({ user, updateBalance }) {
     alert('Ставка принята!');
 
   } catch (error) {
-    alert('Ошибка сети');
+    alert(error.message);
   }
 };
 
