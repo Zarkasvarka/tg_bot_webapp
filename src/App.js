@@ -16,7 +16,7 @@ function App() {
   // Логика ставок
   const handlePlaceBet = async (matchId, team, amount, coefficient) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/predictions`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/predictions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
