@@ -34,8 +34,10 @@ function App() {
       if (!response.ok) throw new Error(data.error || 'Unknown error');
 
       // Обновляем баланс
-      const newBalance = user.balance - amount;
-      setUser(prev => ({ ...prev, balance: newBalance }));
+      setUser(prevUser => ({
+        ...prevUser,
+        balance: data.newBalance
+      }));
       alert('Ставка принята!');
 
     } catch (error) {

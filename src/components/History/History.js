@@ -47,7 +47,7 @@ export default function History() {
 
         // Получаем все турниры
         const tournamentsRes = await fetch(`${API_URL}/tournaments`);
-        const tournamentsData = await tournamentsRes.json();
+        const tournamentsData = tournamentsRes.ok ? await tournamentsRes.json() : [];
         setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
 
       } catch (e) {
