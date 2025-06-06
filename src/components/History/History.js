@@ -42,7 +42,7 @@ export default function History() {
 
         // Получаем все матчи
         const matchesRes = await fetch(`${API_URL}/matches`);
-        const matchesData = await matchesRes.json();
+        const matchesData = matchesRes.ok ? await matchesRes.json() : [];
         setMatches(Array.isArray(matchesData) ? matchesData : []);
 
         // Получаем все турниры
