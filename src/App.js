@@ -65,7 +65,7 @@ function App() {
     } catch (error) {
       alert(error.message);
     }
-  }, [user?.balance]);
+  }, [user?.balance, setUser]);
 
   return (
     <>
