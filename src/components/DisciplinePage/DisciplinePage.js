@@ -1,4 +1,3 @@
-//import { useLocalStorage } from '../../hooks/useLocalStorage';
 import './DisciplinePage.css';
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -160,18 +159,16 @@ function Tournament({ tournament, matches, balance, onPlaceBet}) {
   );
 }
 
-export default function DisciplinePage({ user, onPlaceBet  }) {
-  const { disciplineId } = useParams(); // disciplineId из URL
+export default function DisciplinePage({ user, onPlaceBet }) {
+  const { disciplineId } = useParams();
   const [discipline, setDiscipline] = useState(null);
   const [tournaments, setTournaments] = useState([]);
   const [matchesByTournament, setMatchesByTournament] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Для ставок
   const balance = user ? user.balance : 0;
 
-  // Получаем дисциплину
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -187,13 +184,14 @@ export default function DisciplinePage({ user, onPlaceBet  }) {
         // 2. Получаем турниры этой дисциплины
         const tournRes = await fetch(`${API_URL}/tournaments?disciplineid=${disciplineId}`);
         const tournamentsData = await tournRes.json();
-        setTournaments(tournamentsData);
+        setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
 
         // 3. Для каждого турнира получаем матчи
         const matchesObj = {};
-        for (const t of tournamentsData) {
+        for (const t of (Array.isArray(tournamentsData) ? tournamentsData : [])) {
           const matchRes = await fetch(`${API_URL}/matches?tournamentid=${t.tournamentid}`);
-          matchesObj[t.tournamentid] = await matchRes.json();
+          const matchArr = await matchRes.json();
+          matchesObj[t.tournamentid] = Array.isArray(matchArr) ? matchArr : [];
         }
         setMatchesByTournament(matchesObj);
 
@@ -207,7 +205,6 @@ export default function DisciplinePage({ user, onPlaceBet  }) {
     fetchData();
   }, [disciplineId]);
 
-
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error}</div>;
   if (!discipline) return <p>Дисциплина не найдена</p>;
@@ -216,14 +213,23 @@ export default function DisciplinePage({ user, onPlaceBet  }) {
   const disciplineClass = disciplineClassMap[discipline.name] || '';
 
   // Оставляем только турниры, где есть не завершённые матчи
-  const tournamentsNotFinished = tournaments.filter(tournament =>
-    (matchesByTournament[tournament.tournamentid] || []).some(match => match.status !== 'finished')
+  const tournamentsNotFinished = (Array.isArray(tournaments) ? tournaments : []).filter(tournament =>
+    (Array.isArray(matchesByTournament[tournament.tournamentid])
+      ? matchesByTournament[tournament.tournamentid]
+      : []
+    ).some(match => match.status !== 'finished')
   );
 
   // Сортировка турниров (активные выше)
   const sortedTournaments = tournamentsNotFinished.sort((a, b) => {
-    const aHasActive = (matchesByTournament[a.tournamentid] || []).some(m => m.status === 'upcoming');
-    const bHasActive = (matchesByTournament[b.tournamentid] || []).some(m => m.status === 'upcoming');
+    const aHasActive = (Array.isArray(matchesByTournament[a.tournamentid])
+      ? matchesByTournament[a.tournamentid]
+      : []
+    ).some(m => m.status === 'upcoming');
+    const bHasActive = (Array.isArray(matchesByTournament[b.tournamentid])
+      ? matchesByTournament[b.tournamentid]
+      : []
+    ).some(m => m.status === 'upcoming');
     if (aHasActive && !bHasActive) return -1;
     if (!aHasActive && bHasActive) return 1;
     return a.name.localeCompare(b.name);
@@ -242,7 +248,11 @@ export default function DisciplinePage({ user, onPlaceBet  }) {
           <Tournament
             key={tournament.tournamentid}
             tournament={tournament}
-            matches={matchesByTournament[tournament.tournamentid] || []}
+            matches={
+              Array.isArray(matchesByTournament[tournament.tournamentid])
+                ? matchesByTournament[tournament.tournamentid]
+                : []
+            }
             balance={balance}
             onPlaceBet={onPlaceBet}
           />
