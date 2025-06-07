@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './DisciplinePage.css';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 export default function DisciplinePage({ user, onPlaceBet }) {
   const { disciplineId } = useParams();
