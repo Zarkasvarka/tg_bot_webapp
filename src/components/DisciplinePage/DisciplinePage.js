@@ -261,3 +261,4 @@ export default function DisciplinePage({ user, onPlaceBet }) {
     </div>
   );
 }
+  

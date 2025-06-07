@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './components/Home/Home';
 import Header from './components/Header/Header';
@@ -7,13 +7,14 @@ import History from './components/History/History';
 import Tariffs from './components/Tariffs/Tariffs';
 import { useUser } from './hooks/useUser';
 
+
 function App() {
   const [user, setUser] = useUser();
   const location = useLocation();
   const showHeader = location.pathname !== '/';
 
   // Обработчик ставки
-  const handlePlaceBet = async (matchId, team, amount, coefficient) => {
+  const handlePlaceBet = useCallback(async (matchId, team, amount, coefficient) => {
     try {
       // Проверка параметров
       if (!matchId || !team || !amount || !coefficient) {
@@ -49,6 +50,11 @@ function App() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Неизвестная ошибка');
 
+      console.log('Ответ сервера:', data); // Добавьте лог для проверки
+      if (!data.newBalance || typeof data.newBalance !== 'number') {
+        throw new Error('Некорректный ответ сервера');
+      }
+
       // Обновляем баланс пользователя
       setUser(prevUser => ({
         ...prevUser,
@@ -59,7 +65,7 @@ function App() {
     } catch (error) {
       alert(error.message);
     }
-  };
+  }, [user?.balance]);
 
   return (
     <>
