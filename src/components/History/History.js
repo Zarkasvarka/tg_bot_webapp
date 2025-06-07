@@ -79,7 +79,7 @@ export default function History() {
 
   // Формируем единый массив истории
   const combinedHistory = [
-    ...safePredictions.flatMap(bet => {
+    ...(safePredictions || []).flatMap(bet => {
       try {
         const { match, tournament } = findMatchAndTournament(bet.matchid);
         if (!match || !tournament) return [];
@@ -118,7 +118,7 @@ export default function History() {
         return [];
       }
     }),
-    ...safeTransactions.map(tx => ({
+    ...(safeTransactions || []).map(tx => ({
       id: `tx-${tx.transactionid}`,
       type: 'transaction',
       date: tx.date,
@@ -129,7 +129,7 @@ export default function History() {
 
   // Сортируем по дате (новые сверху)
   combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+  const safeCombinedHistory = Array.isArray(combinedHistory) ? combinedHistory : [];
   return (
     <div className="history-page">
       <button className="back-btn" onClick={() => navigate(-1)}></button>
@@ -139,13 +139,13 @@ export default function History() {
         <div>Загрузка...</div>
       ) : (
         <ul className="history-list">
-          {combinedHistory.length === 0 ? (
+          {safeCombinedHistory.length === 0 ? (
             <p>История пуста</p>
           ) : (
-            combinedHistory.map(item => {
+            safeCombinedHistory.map((item, index) => {
               if (item.type === 'bet') {
                 return (
-                  <li key={item.id} className="history-item">
+                  <li key={`${item.type}-${item.id}-${index}`} className="history-item">
                     <div className="history-left">
                       <div className="operation-name">Ставка</div>
                       <div className="operation-date">{new Date(item.date).toLocaleString()}</div>
