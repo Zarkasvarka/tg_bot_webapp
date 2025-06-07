@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../../hooks/useUser';
-//import { useLocalStorage } from '../../hooks/useLocalStorage';
 import './History.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,7 +15,7 @@ export default function History() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isLoadingUser) return; // Ожидаем загрузки
+    if (isLoadingUser) return;
     if (!user || !window.Telegram?.WebApp?.initData) {
       navigate('/');
       return;
@@ -25,35 +24,40 @@ export default function History() {
     async function fetchData() {
       setLoading(true);
       try {
-        // Заголовок для авторизации
         const headers = {
           'Telegram-InitData': window.Telegram.WebApp.initData
         };
 
         // Получаем историю ставок
         const predRes = await fetch(`${API_URL}/predictions`, { headers });
-        const predData = await predRes.ok ? await predRes.json() : [];
+        if (!predRes.ok) throw new Error('Ошибка загрузки ставок');
+        const predData = await predRes.json();
         setPredictions(Array.isArray(predData) ? predData : []);
 
         // Получаем историю транзакций
         const txRes = await fetch(`${API_URL}/transactions`, { headers });
-        const txData = await txRes.ok ? await txRes.json() : [];
+        if (!txRes.ok) throw new Error('Ошибка загрузки транзакций');
+        const txData = await txRes.json();
         setTransactions(Array.isArray(txData) ? txData : []);
 
         // Получаем все матчи
         const matchesRes = await fetch(`${API_URL}/matches`);
-        const matchesData = matchesRes.ok ? await matchesRes.json() : [];
+        if (!matchesRes.ok) throw new Error('Ошибка загрузки матчей');
+        const matchesData = await matchesRes.json();
         setMatches(Array.isArray(matchesData) ? matchesData : []);
 
         // Получаем все турниры
         const tournamentsRes = await fetch(`${API_URL}/tournaments`);
-        const tournamentsData = tournamentsRes.ok ? await tournamentsRes.json() : [];
+        if (!tournamentsRes.ok) throw new Error('Ошибка загрузки турниров');
+        const tournamentsData = await tournamentsRes.json();
         setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
 
       } catch (e) {
         console.error('Ошибка загрузки данных:', e);
         setPredictions([]);
         setTransactions([]);
+        setMatches([]);
+        setTournaments([]);
       } finally {
         setLoading(false);
       }
@@ -61,11 +65,12 @@ export default function History() {
 
     fetchData();
   }, [user, isLoadingUser, navigate]);
-  
+
   if (isLoadingUser) {
     return <div>Загрузка профиля...</div>;
   }
-    // Вспомогательные функции
+
+  // Вспомогательная функция поиска матча и турнира
   function findMatchAndTournament(matchid) {
     const match = matches.find(m => m.matchid === matchid);
     if (!match) return {};
@@ -79,46 +84,46 @@ export default function History() {
 
   // Формируем единый массив истории
   const combinedHistory = [
-    ...(safePredictions || []).flatMap(bet => {
+    ...safePredictions.flatMap(bet => {
       try {
         const { match, tournament } = findMatchAndTournament(bet.matchid);
         if (!match || !tournament) return [];
 
-      const betEntry = {
-        id: `bet-${bet.predictionid}`,
-        type: 'bet',
-        date: bet.prediction_date,
-        tournamentName: tournament.name,
-        team: bet.selected_team,
-        coef: bet.coefficient_snapshot,
-        amount: bet.bet_amount,
-        matchStatus: match.status,
-        winner: match.result || null,
-        status: bet.status,
-      };
-
-      // Если матч завершён — добавляем результат
-      if (match.status === 'finished') {
-        const win = bet.selected_team === match.result;
-        const resultEntry = {
-          id: `result-${bet.predictionid}`,
-          type: 'result',
+        const betEntry = {
+          id: `bet-${bet.predictionid}`,
+          type: 'bet',
           date: bet.prediction_date,
           tournamentName: tournament.name,
           team: bet.selected_team,
           coef: bet.coefficient_snapshot,
           amount: bet.bet_amount,
-          win,
+          matchStatus: match.status,
+          winner: match.result || null,
+          status: bet.status,
         };
-        return [betEntry, resultEntry];
-      }
 
-      return [betEntry];
-    } catch (e) {
+        // Если матч завершён — добавляем результат
+        if (match.status === 'finished') {
+          const win = bet.selected_team === match.result;
+          const resultEntry = {
+            id: `result-${bet.predictionid}`,
+            type: 'result',
+            date: bet.prediction_date,
+            tournamentName: tournament.name,
+            team: bet.selected_team,
+            coef: bet.coefficient_snapshot,
+            amount: bet.bet_amount,
+            win,
+          };
+          return [betEntry, resultEntry];
+        }
+
+        return [betEntry];
+      } catch (e) {
         return [];
       }
     }),
-    ...(safeTransactions || []).map(tx => ({
+    ...safeTransactions.map(tx => ({
       id: `tx-${tx.transactionid}`,
       type: 'transaction',
       date: tx.date,
@@ -130,6 +135,7 @@ export default function History() {
   // Сортируем по дате (новые сверху)
   combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
   const safeCombinedHistory = Array.isArray(combinedHistory) ? combinedHistory : [];
+
   return (
     <div className="history-page">
       <button className="back-btn" onClick={() => navigate(-1)}></button>

@@ -1,21 +1,37 @@
-//import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Home from './components/Home/Home';
 import Header from './components/Header/Header';
 import DisciplinePage from './components/DisciplinePage/DisciplinePage';
 import History from './components/History/History';
 import Tariffs from './components/Tariffs/Tariffs';
-import { useUser } from './hooks/useUser'; // импортируем хук
+import { useUser } from './hooks/useUser';
 
-// App.js
 function App() {
   const [user, setUser] = useUser();
   const location = useLocation();
   const showHeader = location.pathname !== '/';
 
-  // Логика ставок
+  // Обработчик ставки
   const handlePlaceBet = async (matchId, team, amount, coefficient) => {
     try {
+      // Проверка параметров
+      if (!matchId || !team || !amount || !coefficient) {
+        throw new Error('Некорректные параметры ставки');
+      }
+      const numericAmount = Number(amount);
+      const numericCoef = Number(coefficient);
+
+      if (isNaN(numericAmount) || numericAmount <= 0) {
+        throw new Error('Сумма ставки должна быть положительным числом');
+      }
+      if (isNaN(numericCoef) || numericCoef < 1) {
+        throw new Error('Некорректный коэффициент');
+      }
+      if (user?.balance < numericAmount) {
+        throw new Error('Недостаточно средств для ставки');
+      }
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/predictions`, {
         method: 'POST',
         headers: {
@@ -24,22 +40,22 @@ function App() {
         },
         body: JSON.stringify({
           matchid: matchId,
-          bet_amount: amount,
+          bet_amount: numericAmount,
           selected_team: team,
-          coefficient_snapshot: coefficient
+          coefficient_snapshot: numericCoef
         })
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Unknown error');
+      if (!response.ok) throw new Error(data.error || 'Неизвестная ошибка');
 
-      // Обновляем баланс
+      // Обновляем баланс пользователя
       setUser(prevUser => ({
         ...prevUser,
         balance: data.newBalance
       }));
-      alert('Ставка принята!');
 
+      alert('Ставка принята!');
     } catch (error) {
       alert(error.message);
     }
@@ -50,14 +66,14 @@ function App() {
       {showHeader && user && <Header user={user} />}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route 
-          path="/discipline/:disciplineId" 
+        <Route
+          path="/discipline/:disciplineId"
           element={
-            <DisciplinePage 
-              user={user} 
-              onPlaceBet={handlePlaceBet} // Передаем обработчик
+            <DisciplinePage
+              user={user}
+              onPlaceBet={handlePlaceBet}
             />
-          } 
+          }
         />
         <Route path="/history" element={<History user={user} />} />
         <Route path="/tariffs" element={<Tariffs user={user} />} />
@@ -65,7 +81,6 @@ function App() {
     </>
   );
 }
-
 
 export default function AppWrapper() {
   return (
