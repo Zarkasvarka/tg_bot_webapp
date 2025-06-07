@@ -11,6 +11,11 @@ function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
   const [betAmount, setBetAmount] = useState('');
 
   const handlePlaceBet = () => {
+    if (typeof onPlaceBet !== 'function') {
+      console.error('onPlaceBet не функция!', onPlaceBet);
+      alert('Системная ошибка: функция ставки недоступна');
+      return;
+    }
     if (!selectedTeam) return;
     const coefficient = match.coefficients[selectedTeam];
     if (!coefficient) {
@@ -24,6 +29,7 @@ function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
     } else {
       console.error('onPlaceBet не функция!', onPlaceBet);
     }
+    
     onClose();
   };
 

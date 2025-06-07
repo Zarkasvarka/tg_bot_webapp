@@ -48,6 +48,9 @@ function App() {
       });
 
       const data = await response.json();
+      if (!data?.newBalance || typeof data.newBalance !== 'number') {
+        throw new Error('Некорректный формат ответа сервера');
+      }
       if (!response.ok) throw new Error(data.error || 'Неизвестная ошибка');
 
       console.log('Ответ сервера:', data); // Добавьте лог для проверки
