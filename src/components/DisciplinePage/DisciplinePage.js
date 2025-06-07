@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import './DisciplinePage.css';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
