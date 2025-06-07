@@ -63,7 +63,8 @@ function App() {
 
       alert('Ставка принята!');
     } catch (error) {
-      alert(error.message);
+      console.error('Full error object:', error); // Для отладки
+      alert(error?.message || 'Неизвестная ошибка');
     }
   }, [user?.balance, setUser]);
 

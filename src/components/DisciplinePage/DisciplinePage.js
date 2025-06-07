@@ -6,6 +6,7 @@ const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 // Модальное окно для ставки
 function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
+  
   const [selectedTeam, setSelectedTeam] = useState('');
   const [betAmount, setBetAmount] = useState('');
 
@@ -18,7 +19,11 @@ function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
     }
     const amount = Number(betAmount);
     if (!amount || amount < 1) return;
-    onPlaceBet(match.matchid, selectedTeam, amount, coefficient);
+    if (typeof onPlaceBet === 'function') {
+      onPlaceBet(match.matchid, selectedTeam, amount, coefficient);
+    } else {
+      console.error('onPlaceBet не функция!', onPlaceBet);
+    }
     onClose();
   };
 
@@ -261,4 +266,3 @@ export default function DisciplinePage({ user, onPlaceBet }) {
     </div>
   );
 }
-  
