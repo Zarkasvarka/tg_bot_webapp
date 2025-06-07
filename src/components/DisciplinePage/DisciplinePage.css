@@ -21,22 +21,33 @@
 
 .discipline-title.dota2 {
   background-color: #fc3b00;
-  color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
   border: 2px solid #ec3300;
 }
 
 .discipline-title.cs2 {
   background-color: #ff6600;
-  color: white;
+  color: rgb(0, 0, 0);
   border: 2px solid #cc5200;
 }
 
 .discipline-title.lol {
-  background-color: #28a745;
-  color: white;
-  border: 2px solid #1e7e34;
+  background-color: #14117a;
+  color: rgb(225, 146, 28);
+  border: 2px solid #1b105a;
 }
 
+.discipline-title.valorant {
+  background-color: #ff4656;
+  color: #0f1923;
+  border: 2px solid #ff4656;
+}
+
+.discipline-title.wotb {
+  background-color: #2e2e2e;
+  color: rgb(255, 255, 255);
+  border: 2px solid #383838;
+}
 /* Турниры */
 .tournament {
   margin-bottom: 20px;

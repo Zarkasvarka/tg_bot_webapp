@@ -4,6 +4,158 @@ import { useParams } from "react-router-dom";
 
 const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
+// Модальное окно для ставки
+function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
+  const [selectedTeam, setSelectedTeam] = useState('');
+  const [betAmount, setBetAmount] = useState('');
+
+  const handlePlaceBet = () => {
+    if (!selectedTeam) return;
+    const coefficient = match.coefficients[selectedTeam];
+    if (!coefficient) {
+      alert('Ошибка коэффициента');
+      return;
+    }
+    const amount = Number(betAmount);
+    if (!amount || amount < 1) return;
+    onPlaceBet(match.matchid, selectedTeam, amount, coefficient);
+    onClose();
+  };
+
+  return (
+    <div className="bet-modal-overlay" onClick={onClose}>
+      <div className="bet-modal" onClick={e => e.stopPropagation()}>
+        <div className="bet-modal-header">
+          <h3>{tournamentName}</h3>
+          <button className="bet-modal-close" onClick={onClose} aria-label="Закрыть окно">&times;</button>
+        </div>
+        <div className="bet-modal-body">
+          <div className="teams-row">
+            <div className="team-block">
+              <div className="team-name">{match.team1}</div>
+              {match.team1_pic && (
+                <img src={match.team1_pic} alt={match.team1} className="team-logo" />
+              )}
+              <div className="team-coef">
+                <span>{match.coefficients[match.team1]}</span>
+                <button
+                  className={selectedTeam === match.team1 ? 'selected' : ''}
+                  type="button"
+                  onClick={() => setSelectedTeam(match.team1)}
+                >
+                  Выбрать
+                </button>
+              </div>
+            </div>
+            <div className="match-time">
+              <div className="date-small">
+                {new Date(match.start_time).toLocaleDateString([], { day: '2-digit', month: 'long' })}
+              </div>
+              <div className="time-large">
+                {new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+            <div className="team-block">
+              <div className="team-name">{match.team2}</div>
+              {match.team2_pic && (
+                <img src={match.team2_pic} alt={match.team2} className="team-logo" />
+              )}
+              <div className="team-coef">
+                <span>{match.coefficients[match.team2]}</span>
+                <button
+                  className={selectedTeam === match.team2 ? 'selected' : ''}
+                  type="button"
+                  onClick={() => setSelectedTeam(match.team2)}
+                >
+                  Выбрать
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="bet-input-row">
+            <input
+              type="number"
+              placeholder="Сумма ставки"
+              value={betAmount}
+              onChange={e => setBetAmount(e.target.value)}
+              min="1"
+              max={balance}
+            />
+            <button
+              type="button"
+              onClick={handlePlaceBet}
+              disabled={!selectedTeam || !betAmount}
+            >
+              Поставить
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Компонент одного матча
+function Match({ match, tournamentName, balance, onPlaceBet }) {
+  const [betOpen, setBetOpen] = useState(false);
+  const isMatchActive = match.status === 'upcoming';
+
+  return (
+    <div className="match">
+      <div className={`match-status-dot ${match.status}`} title={`Статус: ${match.status}`} />
+      <div className="match-info">
+        <span>{match.team1} vs {match.team2}</span>
+        <span>Начало: {new Date(match.start_time).toLocaleString()}</span>
+      </div>
+      <button
+        disabled={!isMatchActive}
+        onClick={() => setBetOpen(true)}
+        className="bet-open-button"
+        type="button"
+      >
+        Ставка
+      </button>
+      {betOpen && (
+        <BetModal
+          tournamentName={tournamentName}
+          match={match}
+          balance={balance}
+          onClose={() => setBetOpen(false)}
+          onPlaceBet={onPlaceBet}
+        />
+      )}
+    </div>
+  );
+}
+
+// Компонент турнира (аккордеон)
+function Tournament({ tournament, matches, balance, onPlaceBet }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Сортируем матчи по дате
+  const sortedMatches = [...matches].sort(
+    (a, b) => new Date(a.start_time) - new Date(b.start_time)
+  );
+
+  return (
+    <div className="tournament">
+      <h3 className="tournament-header" onClick={() => setIsOpen(!isOpen)}>
+        {tournament.name}
+      </h3>
+      {isOpen && sortedMatches.map(match => (
+        <Match
+          key={match.matchid}
+          match={match}
+          tournamentName={tournament.name}
+          balance={balance}
+          onPlaceBet={onPlaceBet}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Главный компонент страницы дисциплины
 export default function DisciplinePage({ user, onPlaceBet }) {
   const { disciplineId } = useParams();
   const [discipline, setDiscipline] = useState(null);
@@ -65,16 +217,24 @@ export default function DisciplinePage({ user, onPlaceBet }) {
     return discipline?.name ? classMap[discipline.name] || '' : '';
   };
 
-  // Фильтрация и сортировка турниров
+  // Функция для получения ближайшей даты матча в турнире
+  const getNearestMatchDate = (tournamentId) => {
+    const matches = matchesByTournament[tournamentId] || [];
+    const upcomingMatches = matches.filter(m => m.status !== 'finished');
+    if (!upcomingMatches.length) return Infinity; // Турниры без матчей в конец
+    return Math.min(...upcomingMatches.map(m => new Date(m.start_time).getTime()));
+  };
+
+  // Фильтрация и сортировка турниров по дате ближайшего матча
   const processedTournaments = tournaments
     .filter(t => {
       const matches = matchesByTournament[t.tournamentid] || [];
       return matches.some(m => m.status !== 'finished');
     })
     .sort((a, b) => {
-      const aMatches = matchesByTournament[a.tournamentid] || [];
-      const bMatches = matchesByTournament[b.tournamentid] || [];
-      return bMatches.length - aMatches.length;
+      const aDate = getNearestMatchDate(a.tournamentid);
+      const bDate = getNearestMatchDate(b.tournamentid);
+      return aDate - bDate; // Сначала ближайшие
     });
 
   if (loading) return <div className="loading">Загрузка...</div>;
@@ -98,142 +258,6 @@ export default function DisciplinePage({ user, onPlaceBet }) {
           />
         ))
       )}
-    </div>
-  );
-}
-
-// Компонент турнира (аккордеон)
-function Tournament({ tournament, matches, balance, onPlaceBet }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const sortedMatches = [...matches].sort(
-    (a, b) => new Date(a.start_time) - new Date(b.start_time)
-  );
-
-  return (
-    <div className="tournament">
-      <h3 className="tournament-header" onClick={() => setIsOpen(!isOpen)}>
-        {tournament.name}
-      </h3>
-      {isOpen && sortedMatches.map(match => (
-        <Match
-          key={match.matchid}
-          match={match}
-          tournamentName={tournament.name}
-          balance={balance}
-          onPlaceBet={onPlaceBet}
-        />
-      ))}
-    </div>
-  );
-}
-
-// Компонент матча
-function Match({ match, tournamentName, balance, onPlaceBet }) {
-  const [betOpen, setBetOpen] = useState(false);
-  const isMatchActive = match.status === 'upcoming';
-
-  return (
-    <div className="match">
-      <div className={`match-status-dot ${match.status}`} title={`Статус: ${match.status}`} />
-      <div className="match-info">
-        <span>{match.team1} vs {match.team2}</span>
-        <span>Начало: {new Date(match.start_time).toLocaleString()}</span>
-      </div>
-      <button
-        disabled={!isMatchActive}
-        onClick={() => setBetOpen(true)}
-        className="bet-open-button"
-      >
-        Ставка
-      </button>
-      {betOpen && (
-        <BetModal
-          tournamentName={tournamentName}
-          match={match}
-          balance={balance}
-          onClose={() => setBetOpen(false)}
-          onPlaceBet={onPlaceBet}
-        />
-      )}
-    </div>
-  );
-}
-
-// BetModal определён прямо здесь
-function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
-  const [selectedTeam, setSelectedTeam] = useState('');
-  const [betAmount, setBetAmount] = useState('');
-
-  const handlePlaceBet = () => {
-    if (!selectedTeam) return;
-    const coefficient = match.coefficients[selectedTeam];
-    if (!coefficient) {
-      alert('Ошибка коэффициента');
-      return;
-    }
-    const amount = Number(betAmount);
-    if (!amount || amount < 1) return;
-    onPlaceBet(match.matchid, selectedTeam, amount, coefficient);
-    onClose();
-  };
-
-  return (
-    <div className="bet-modal-overlay" onClick={onClose}>
-      <div className="bet-modal" onClick={e => e.stopPropagation()}>
-        <div className="bet-modal-header">
-          <h3>{tournamentName}</h3>
-          <button className="bet-modal-close" onClick={onClose} aria-label="Закрыть окно">&times;</button>
-        </div>
-        <div className="bet-modal-body">
-          <div className="teams-row">
-            <div className="team-block">
-              <div className="team-name">{match.team1}</div>
-              <img src={match.team1_pic} alt={match.team1} className="team-logo" />
-              <div className="team-coef">
-                <span>{match.coefficients[match.team1]}</span>
-                <button
-                  className={selectedTeam === match.team1 ? 'selected' : ''}
-                  onClick={() => setSelectedTeam(match.team1)}
-                >
-                  Выбрать
-                </button>
-              </div>
-            </div>
-            <div className="match-time">
-              <div className="date-small">
-                {new Date(match.start_time).toLocaleDateString([], { day: '2-digit', month: 'long' })}
-              </div>
-              <div className="time-large">
-                {new Date(match.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-            <div className="team-block">
-              <div className="team-name">{match.team2}</div>
-              <img src={match.team2_pic} alt={match.team2} className="team-logo" />
-              <div className="team-coef">
-                <span>{match.coefficients[match.team2]}</span>
-                <button
-                  className={selectedTeam === match.team2 ? 'selected' : ''}
-                  onClick={() => setSelectedTeam(match.team2)}
-                >
-                  Выбрать
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="bet-input-row">
-            <input
-              type="number"
-              placeholder="Сумма ставки"
-              value={betAmount}
-              onChange={e => setBetAmount(e.target.value)}
-              min="1"
-              max={balance}
-            />
-            <button onClick={handlePlaceBet} disabled={!selectedTeam || !betAmount}>Поставить</button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
