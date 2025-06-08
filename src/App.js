@@ -32,7 +32,6 @@ function App() {
           throw new Error('Недостаточно средств для ставки');
         }
 
-        // Локально уменьшаем баланс сразу
         setUser(prevUser => {
           if (!prevUser) return prevUser;
           return {
@@ -41,7 +40,7 @@ function App() {
           };
         });
 
-        // Отправляем ставку на сервер
+        // Отправление ставку на сервер
         const response = await fetch(
           `${process.env.REACT_APP_API_URL}/api/predictions`,
           {
@@ -62,7 +61,6 @@ function App() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Неизвестная ошибка');
 
-        // Если сервер прислал актуальный баланс — обновляем его
         if (typeof data.newBalance === 'number') {
           setUser(prevUser => {
             if (!prevUser) return prevUser;

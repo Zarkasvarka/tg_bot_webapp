@@ -143,7 +143,6 @@ function Match({ match, tournamentName, balance, onPlaceBet }) {
 function Tournament({ tournament, matches, balance, onPlaceBet }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Сортируем матчи по дате
   const sortedMatches = [...matches].sort(
     (a, b) => new Date(a.start_time) - new Date(b.start_time)
   );

@@ -7,7 +7,7 @@
 
 .discipline-title {
   width: 100%;
-  border: 2px solid #ff0000; /* видимая граница, цвет можно изменить */
+  border: 2px solid #ff0000;
   padding: 15px 0;
   text-align: center;
   font-size: 24px;
@@ -16,7 +16,7 @@
   border-radius: 6px;
   box-sizing: border-box;
   margin-bottom: 20px;
-  background-color: #f9faff; /* опционально, чтобы выделить блок */
+  background-color: #f9faff;
 }
 
 .discipline-title.dota2 {
@@ -70,7 +70,7 @@
 
 /* Матчи */
 .match {
-  position: relative; /* для позиционирования точки */
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -90,7 +90,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: gray; /* цвет по умолчанию */
+  background-color: gray;
   &.finished {
     background-color: gray;
   }

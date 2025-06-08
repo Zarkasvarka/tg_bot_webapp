@@ -50,6 +50,5 @@ export function useUser() {
     };
   }, []);
 
-  // setUser возвращаем наружу для обновления баланса вручную
   return [user, setUser, isLoading];
 }

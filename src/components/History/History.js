@@ -34,19 +34,19 @@ export default function History() {
         const predData = await predRes.json();
         setPredictions(Array.isArray(predData) ? predData : []);
 
-        // Получаем историю транзакций
+        // историю транзакций
         const txRes = await fetch(`${API_URL}/transactions`, { headers });
         if (!txRes.ok) throw new Error('Ошибка загрузки транзакций');
         const txData = await txRes.json();
         setTransactions(Array.isArray(txData) ? txData : []);
 
-        // Получаем все матчи
+        // все матчи
         const matchesRes = await fetch(`${API_URL}/matches`);
         if (!matchesRes.ok) throw new Error('Ошибка загрузки матчей');
         const matchesData = await matchesRes.json();
         setMatches(Array.isArray(matchesData) ? matchesData : []);
 
-        // Получаем все турниры
+        // все турниры
         const tournamentsRes = await fetch(`${API_URL}/tournaments`);
         if (!tournamentsRes.ok) throw new Error('Ошибка загрузки турниров');
         const tournamentsData = await tournamentsRes.json();
@@ -78,11 +78,9 @@ export default function History() {
     return { match, tournament };
   }
 
-  // Формируем историю с защитой от undefined
   const safePredictions = Array.isArray(predictions) ? predictions : [];
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
 
-  // Формируем единый массив истории
   const combinedHistory = [
     ...safePredictions.flatMap(bet => {
       try {
@@ -132,7 +130,6 @@ export default function History() {
     })),
   ];
 
-  // Сортируем по дате (новые сверху)
   combinedHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
   const safeCombinedHistory = Array.isArray(combinedHistory) ? combinedHistory : [];
 
