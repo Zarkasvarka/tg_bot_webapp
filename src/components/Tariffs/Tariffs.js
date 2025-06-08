@@ -85,6 +85,7 @@ export default function Tariffs() {
       ro.disconnect();
       window.removeEventListener('resize', handleResize);
     };
+    // eslint-disable-next-line
   }, [gap, tariffs.length]);
 
   // Обработчик скролла
