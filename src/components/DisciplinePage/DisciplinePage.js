@@ -1,174 +1,35 @@
 import './DisciplinePage.css';
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
-export default function DisciplinePage({ user, onPlaceBet }) {
-  const { disciplineId } = useParams();
-  const navigate = useNavigate();
-
-  const [discipline, setDiscipline] = useState(null);
-  const [tournaments, setTournaments] = useState([]);
-  const [matchesByTournament, setMatchesByTournament] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [discRes, tournRes] = await Promise.all([
-          fetch(`${API_URL}/disciplines/${disciplineId}`),
-          fetch(`${API_URL}/tournaments?discipline=${disciplineId}`)
-        ]);
-        const discData = await discRes.json();
-        const tournamentsData = await tournRes.json();
-
-        const matchesPromises = tournamentsData.map(t =>
-          fetch(`${API_URL}/matches?tournament=${t.tournamentid}`)
-        );
-        const matchesResponses = await Promise.all(matchesPromises);
-        const matchesData = await Promise.all(
-          matchesResponses.map(res => res.json())
-        );
-
-        const matchesMap = tournamentsData.reduce((acc, t, idx) => {
-          acc[t.tournamentid] = matchesData[idx];
-          return acc;
-        }, {});
-
-        setDiscipline(discData);
-        setTournaments(tournamentsData);
-        setMatchesByTournament(matchesMap);
-      } catch (error) {
-        console.error('Ошибка загрузки:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [disciplineId]);
-
-  // Класс для заголовка дисциплины
-  const getDisciplineClass = () => {
-    const classMap = {
-      'Counter-Strike 2': 'cs2',
-      'Dota 2': 'dota2',
-      'League of Legends': 'lol',
-      'Valorant': 'valorant',
-      'World of Tanks: Blitz': 'wotb',
-    };
-    return discipline?.name ? classMap[discipline.name] || '' : '';
-  };
-
-  if (loading) return <div>Загрузка...</div>;
-
-  return (
-    <div className="discipline-page">
-      <button className="back-btn" onClick={() => navigate(-1)}>Назад</button>
-      <div className={`discipline-title ${getDisciplineClass()}`}>
-        {discipline?.name}
-      </div>
-      {tournaments.length === 0 ? (
-        <p>Нет турниров</p>
-      ) : (
-        tournaments.map(tournament => (
-          <Tournament
-            key={tournament.tournamentid}
-            tournament={tournament}
-            matches={matchesByTournament[tournament.tournamentid] || []}
-            userBalance={user?.balance}
-            onPlaceBet={onPlaceBet}
-          />
-        ))
-      )}
-    </div>
-  );
-}
-
-// Турнир-аккордеон
-function Tournament({ tournament, matches, userBalance, onPlaceBet }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Сортировка матчей по времени
-  const sortedMatches = [...matches].sort(
-    (a, b) => new Date(a.start_time) - new Date(b.start_time)
-  );
-
-  return (
-    <div className="tournament">
-      <div className="tournament-header" onClick={() => setIsOpen(!isOpen)}>
-        {tournament.name}
-      </div>
-      {isOpen && (
-        <div>
-          {sortedMatches.map(match => (
-            <Match
-              key={match.matchid}
-              match={match}
-              userBalance={userBalance}
-              onPlaceBet={onPlaceBet}
-              tournamentName={tournament.name}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Карточка матча
-function Match({ match, userBalance, onPlaceBet, tournamentName }) {
-  const [showModal, setShowModal] = useState(false);
-
-  return (
-    <div className="match">
-      <div className={`match-status-dot ${match.status}`}></div>
-      <div className="match-info">
-        <div>
-          {match.team1} vs {match.team2}
-        </div>
-        <div>
-          {new Date(match.start_time).toLocaleString()}
-        </div>
-      </div>
-      <button
-        className="bet-open-button"
-        onClick={() => setShowModal(true)}
-        disabled={match.status !== 'upcoming' || userBalance < match.min_bet}
-      >
-        Ставка
-      </button>
-      {showModal && (
-        <BetModal
-          match={match}
-          onClose={() => setShowModal(false)}
-          onPlaceBet={onPlaceBet}
-          tournamentName={tournamentName}
-          balance={userBalance}
-        />
-      )}
-    </div>
-  );
-}
-
 // Модальное окно для ставки
-function BetModal({ match, onClose, onPlaceBet, tournamentName, balance }) {
+function BetModal({ tournamentName, match, balance, onClose, onPlaceBet }) {
+  
   const [selectedTeam, setSelectedTeam] = useState('');
   const [betAmount, setBetAmount] = useState('');
 
   const handlePlaceBet = () => {
     if (typeof onPlaceBet !== 'function') {
-      alert('Ошибка системы!');
+      console.error('onPlaceBet не функция!', onPlaceBet);
+      alert('Системная ошибка: функция ставки недоступна');
       return;
     }
-    if (!selectedTeam || !betAmount) return;
+    if (!selectedTeam) return;
     const coefficient = match.coefficients[selectedTeam];
     if (!coefficient) {
       alert('Ошибка коэффициента');
       return;
     }
-    onPlaceBet(match.matchid, selectedTeam, betAmount, coefficient);
+    const amount = Number(betAmount);
+    if (!amount || amount < 1) return;
+    if (typeof onPlaceBet === 'function') {
+      onPlaceBet(match.matchid, selectedTeam, amount, coefficient);
+    } else {
+      console.error('onPlaceBet не функция!', onPlaceBet);
+    }
+    
     onClose();
   };
 
@@ -228,7 +89,7 @@ function BetModal({ match, onClose, onPlaceBet, tournamentName, balance }) {
               placeholder="Сумма ставки"
               value={betAmount}
               onChange={e => setBetAmount(e.target.value)}
-              min={match.min_bet}
+              min="1"
               max={balance}
             />
             <button
@@ -241,6 +102,173 @@ function BetModal({ match, onClose, onPlaceBet, tournamentName, balance }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Компонент одного матча
+function Match({ match, tournamentName, balance, onPlaceBet }) {
+  const [betOpen, setBetOpen] = useState(false);
+  const isMatchActive = match.status === 'upcoming';
+
+  return (
+    <div className="match">
+      <div className={`match-status-dot ${match.status}`} title={`Статус: ${match.status}`} />
+      <div className="match-info">
+        <span>{match.team1} vs {match.team2}</span>
+        <span>Начало: {new Date(match.start_time).toLocaleString()}</span>
+      </div>
+      <button
+        disabled={!isMatchActive}
+        onClick={() => setBetOpen(true)}
+        className="bet-open-button"
+        type="button"
+      >
+        Ставка
+      </button>
+      {betOpen && (
+        <BetModal
+          tournamentName={tournamentName}
+          match={match}
+          balance={balance}
+          onClose={() => setBetOpen(false)}
+          onPlaceBet={onPlaceBet}
+        />
+      )}
+    </div>
+  );
+}
+
+// Компонент турнира (аккордеон)
+function Tournament({ tournament, matches, balance, onPlaceBet }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Сортируем матчи по дате
+  const sortedMatches = [...matches].sort(
+    (a, b) => new Date(a.start_time) - new Date(b.start_time)
+  );
+
+  return (
+    <div className="tournament">
+      <h3 className="tournament-header" onClick={() => setIsOpen(!isOpen)}>
+        {tournament.name}
+      </h3>
+      {isOpen && sortedMatches.map(match => (
+        <Match
+          key={match.matchid}
+          match={match}
+          tournamentName={tournament.name}
+          balance={balance}
+          onPlaceBet={onPlaceBet}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Главный компонент страницы дисциплины
+export default function DisciplinePage({ user, onPlaceBet }) {
+  const { disciplineId } = useParams();
+  const [discipline, setDiscipline] = useState(null);
+  const [tournaments, setTournaments] = useState([]);
+  const [matchesByTournament, setMatchesByTournament] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const balance = user?.balance || 0;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 1. Загрузка данных дисциплины
+        const [discRes, tournRes] = await Promise.all([
+          fetch(`${API_URL}/disciplines/${disciplineId}`),
+          fetch(`${API_URL}/tournaments?disciplineid=${disciplineId}`)
+        ]);
+        if (!discRes.ok || !tournRes.ok) throw new Error("Ошибка загрузки данных");
+
+        const disciplineData = await discRes.json();
+        const tournamentsData = await tournRes.json();
+
+        setDiscipline(disciplineData);
+        setTournaments(Array.isArray(tournamentsData) ? tournamentsData : []);
+
+        // 2. Загрузка матчей для каждого турнира
+        const matchesPromises = (Array.isArray(tournamentsData) ? tournamentsData : []).map(async (t) => {
+          const res = await fetch(`${API_URL}/matches?tournamentid=${t.tournamentid}`);
+          return res.ok ? res.json() : [];
+        });
+
+        const matchesResults = await Promise.all(matchesPromises);
+        const matchesMap = (Array.isArray(tournamentsData) ? tournamentsData : []).reduce((acc, t, index) => {
+          acc[t.tournamentid] = Array.isArray(matchesResults[index]) ? matchesResults[index] : [];
+          return acc;
+        }, {});
+
+        setMatchesByTournament(matchesMap);
+      } catch (error) {
+        console.error("Ошибка:", error);
+        setTournaments([]);
+        setMatchesByTournament({});
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [disciplineId]);
+
+  // Генерация класса для стилизации заголовка дисциплины
+  const getDisciplineClass = () => {
+    const classMap = {
+      'Counter-Strike 2': 'cs2',
+      'Dota 2': 'dota2',
+      'League of Legends': 'lol',
+      'Valorant': 'valorant',
+      'World of Tanks: Blitz': 'wotb',
+    };
+    return discipline?.name ? classMap[discipline.name] || '' : '';
+  };
+
+  // Функция для получения ближайшей даты матча в турнире
+  const getNearestMatchDate = (tournamentId) => {
+    const matches = matchesByTournament[tournamentId] || [];
+    const upcomingMatches = matches.filter(m => m.status !== 'finished');
+    if (!upcomingMatches.length) return Infinity; // Турниры без матчей в конец
+    return Math.min(...upcomingMatches.map(m => new Date(m.start_time).getTime()));
+  };
+
+  // Фильтрация и сортировка турниров по дате ближайшего матча
+  const processedTournaments = tournaments
+    .filter(t => {
+      const matches = matchesByTournament[t.tournamentid] || [];
+      return matches.some(m => m.status !== 'finished');
+    })
+    .sort((a, b) => {
+      const aDate = getNearestMatchDate(a.tournamentid);
+      const bDate = getNearestMatchDate(b.tournamentid);
+      return aDate - bDate; // Сначала ближайшие
+    });
+
+  if (loading) return <div className="loading">Загрузка...</div>;
+  if (!discipline) return <div>Дисциплина не найдена</div>;
+
+  return (
+    <div className={`discipline-page`}>
+      <div className={`discipline-title ${getDisciplineClass()}`}>
+        {discipline.name}
+      </div>
+      {processedTournaments.length === 0 ? (
+        <p>Нет активных турниров</p>
+      ) : (
+        processedTournaments.map(tournament => (
+          <Tournament
+            key={tournament.tournamentid}
+            tournament={tournament}
+            matches={matchesByTournament[tournament.tournamentid] || []}
+            balance={balance}
+            onPlaceBet={onPlaceBet}
+          />
+        ))
+      )}
     </div>
   );
 }
