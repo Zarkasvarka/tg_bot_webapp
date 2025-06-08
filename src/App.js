@@ -7,9 +7,8 @@ import History from './components/History/History';
 import Tariffs from './components/Tariffs/Tariffs';
 import { useUser } from './hooks/useUser';
 
-// Главный компонент приложения
 function App() {
-  const [user, setUser] = useUser();
+  const [user, setUser, isLoading] = useUser();
   const location = useLocation();
   const showHeader = location.pathname !== '/';
 
@@ -17,7 +16,6 @@ function App() {
   const handlePlaceBet = useCallback(
     async (matchId, team, amount, coefficient) => {
       try {
-        // Проверка параметров
         if (!matchId || !team || !amount || !coefficient) {
           throw new Error('Некорректные параметры ставки');
         }
@@ -34,6 +32,16 @@ function App() {
           throw new Error('Недостаточно средств для ставки');
         }
 
+        // Локально уменьшаем баланс сразу
+        setUser(prevUser => {
+          if (!prevUser) return prevUser;
+          return {
+            ...prevUser,
+            balance: prevUser.balance - numericAmount
+          };
+        });
+
+        // Отправляем ставку на сервер
         const response = await fetch(
           `${process.env.REACT_APP_API_URL}/api/predictions`,
           {
@@ -54,32 +62,27 @@ function App() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Неизвестная ошибка');
 
-        // Для отладки
-        console.log('Ответ сервера:', data);
-
-        if (typeof data.newBalance !== 'number') {
-          throw new Error('Некорректный ответ сервера: отсутствует новый баланс');
+        // Если сервер прислал актуальный баланс — обновляем его
+        if (typeof data.newBalance === 'number') {
+          setUser(prevUser => {
+            if (!prevUser) return prevUser;
+            return {
+              ...prevUser,
+              balance: data.newBalance
+            };
+          });
         }
-
-        // Обновляем баланс пользователя
-        setUser((prevUser) => {
-          if (!prevUser) return prevUser;
-          return {
-            ...prevUser,
-            balance: data.newBalance,
-          };
-        });
 
         alert('Ставка принята!');
       } catch (error) {
-        // Всегда выводим полный объект ошибки в консоль для отладки
         console.error('Full error object:', error);
-        // Показываем пользователю понятное сообщение
         alert(error?.message || error?.toString() || 'Неизвестная ошибка');
       }
     },
-    [user?.balance, setUser]
+    [user, setUser]
   );
+
+  if (isLoading) return <div>Загрузка...</div>;
 
   return (
     <>
@@ -102,7 +105,6 @@ function App() {
   );
 }
 
-// Обёртка для роутера
 export default function AppWrapper() {
   return (
     <BrowserRouter>

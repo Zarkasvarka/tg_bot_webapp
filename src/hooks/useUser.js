@@ -4,20 +4,10 @@ export function useUser() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Функция для безопасного обновления состояния
-  const updateUser = (newUserData) => {
-    setUser(prev => {
-      if (!prev) return newUserData; // Если пользователя не было
-      return { ...prev, ...newUserData }; // Мердж существующих данных
-    });
-  };
-
   useEffect(() => {
-    let isMounted = true; // Флаг для отслеживания монтирования
-    
+    let isMounted = true;
     const initData = window.Telegram?.WebApp?.initData;
-    
-    // Если нет данных авторизации
+
     if (!initData) {
       if (isMounted) {
         setIsLoading(false);
@@ -40,15 +30,9 @@ export function useUser() {
       })
       .then(data => {
         if (!isMounted) return;
-        
-        // Валидация ответа сервера
-        if (!data?.telegramId) {
-          throw new Error('Некорректные данные пользователя');
-        }
-
         setUser({
           avatarUrl: data.avatar || '/default-avatar.png',
-          nickname: data.username || `User_${data.telegramId.slice(-4)}`,
+          nickname: data.username || `User_${data.telegramId?.slice(-4) || '0000'}`,
           balance: Number(data.balance) || 0,
           telegramid: data.telegramId
         });
@@ -66,5 +50,6 @@ export function useUser() {
     };
   }, []);
 
-  return [user, updateUser, isLoading];
+  // setUser возвращаем наружу для обновления баланса вручную
+  return [user, setUser, isLoading];
 }
