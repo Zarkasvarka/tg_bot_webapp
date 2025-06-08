@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 export default function History() {
-  const [user, isLoadingUser] = useUser();
+  const [user, _, isLoadingUser] = useUser();
   const [predictions, setPredictions] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [matches, setMatches] = useState([]);
