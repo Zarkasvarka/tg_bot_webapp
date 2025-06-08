@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 export default function History() {
-  const [user, _, isLoadingUser] = useUser();
+  const [user, isLoading] = useUser();
   const [predictions, setPredictions] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -15,7 +15,7 @@ export default function History() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isLoadingUser) return;
+    if (isLoading) return;
     if (!user || !window.Telegram?.WebApp?.initData) {
       navigate('/');
       return;
@@ -64,9 +64,9 @@ export default function History() {
     }
 
     fetchData();
-  }, [user, isLoadingUser, navigate]);
+  }, [user, isLoading, navigate]);
 
-  if (isLoadingUser) {
+  if (isLoading) {
     return <div>Загрузка профиля...</div>;
   }
 
